@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Sanjith — AI Developer</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ── RESET ─────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+/* ── TOKENS ────────────────────────────── */
+:root{
+  --bg:#0a0a0a;  --bg2:#141414;  --bg3:#1f1f1f;
+  --card:#242424;  --card-h:#2c2c2c;
+  --b:rgba(255,255,255,.07);  --bh:rgba(255,255,255,.16);
+  --text:#fff;  --sec:#bdbdbd;  --muted:#8a8a8a;  --silver:#cfcfcf;
+  --glow:rgba(220,220,220,.1);  --gs:rgba(220,220,220,.06);
+  --rp:50px;
+}
+
+/* ── BASE ──────────────────────────────── */
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;cursor:none}
+
+/* ── CURSOR ────────────────────────────── */
+#cd{position:fixed;top:0;left:0;width:8px;height:8px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;will-change:transform;transition:width .18s,height .18s,background .18s,opacity .18s}
+#cr{position:fixed;top:0;left:0;width:32px;height:32px;border:1.5px solid rgba(255,255,255,.28);border-radius:50%;pointer-events:none;z-index:9998;will-change:transform}
+body.hov #cd{width:18px;height:18px;background:var(--silver);opacity:.5}
+body.hov #cr{opacity:.4}
+
+/* ── CANVAS ────────────────────────────── */
+#bgc{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ── APP ───────────────────────────────── */
+#app{position:relative;z-index:1}
+section{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:7rem 2rem 5rem;position:relative}
+.inner{width:100%;max-width:1060px;margin:0 auto}
+
+/* ── TOP NAV ───────────────────────────── */
+#tnav{
+  position:fixed;top:1.1rem;left:50%;transform:translateX(-50%);
+  z-index:700;display:flex;align-items:center;gap:.12rem;
+  background:rgba(10,10,10,.76);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border:1px solid var(--b);border-radius:var(--rp);padding:.38rem .48rem;
+  box-shadow:0 8px 32px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04);
+  opacity:0;animation:navIn .6s .2s ease forwards;
+}
+.nl{
+  padding:.35rem .95rem;border-radius:var(--rp);
+  font-family:'Inter',sans-serif;font-size:.77rem;font-weight:400;
+  color:var(--muted);text-decoration:none;cursor:pointer;
+  transition:color .2s,background .2s,transform .2s,border-color .2s;
+  border:1px solid transparent;letter-spacing:.015em;user-select:none;
+}
+.nl:hover{color:var(--text);background:rgba(255,255,255,.07);transform:scale(1.05)}
+.nl.on{color:var(--text);background:rgba(255,255,255,.1);border-color:var(--b)}
+
+/* ── MOBILE NAV ────────────────────────── */
+#mbtn{
+  display:none;position:fixed;top:1.1rem;left:50%;transform:translateX(-50%);
+  z-index:701;background:rgba(10,10,10,.8);backdrop-filter:blur(18px);
+  border:1px solid var(--b);border-radius:var(--rp);
+  padding:.44rem 1.2rem;color:var(--muted);cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.15em;
+  box-shadow:0 8px 28px rgba(0,0,0,.5);
+  opacity:0;animation:navIn .6s .2s ease forwards;
+}
+#mmenu{
+  position:fixed;top:4.1rem;left:50%;transform:translateX(-50%);z-index:699;
+  background:rgba(12,12,12,.96);backdrop-filter:blur(20px);
+  border:1px solid var(--b);border-radius:14px;
+  padding:.45rem;flex-direction:column;gap:.2rem;min-width:175px;
+  box-shadow:0 20px 50px rgba(0,0,0,.75);display:none;
+}
+#mmenu.open{display:flex}
+.ml{padding:.52rem 1rem;border-radius:10px;font-size:.83rem;color:var(--muted);
+    cursor:pointer;transition:all .18s;font-family:'Inter',sans-serif;text-decoration:none}
+.ml:hover,.ml.on{background:rgba(255,255,255,.07);color:var(--text)}
+
+/* ── SOCIAL BAR ────────────────────────── */
+#sbar{
+  position:fixed;top:1.1rem;right:1.4rem;z-index:700;
+  display:flex;align-items:center;gap:.28rem;
+  background:rgba(10,10,10,.76);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border:1px solid var(--b);border-radius:var(--rp);padding:.38rem .52rem;
+  box-shadow:0 8px 32px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04);
+  overflow:visible;
+  opacity:0;animation:socIn .6s .4s ease forwards;
+}
+.si{
+  width:30px;height:30px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  text-decoration:none;color:var(--muted);
+  border:1px solid transparent;
+  transform:scale(1) translateY(0);
+  transition:color .22s,background .22s,border-color .22s,transform .22s,box-shadow .22s;
+  will-change:transform;
+}
+.si svg{width:14px;height:14px;fill:currentColor;display:block;flex-shrink:0}
+.si:hover{color:var(--text);background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.14);transform:scale(1.22) translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.4)}
+
+/* ── SIDE DOTS ─────────────────────────── */
+#dots{position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:11px;z-index:500}
+.dn{width:5px;height:5px;border:1px solid var(--muted);border-radius:50%;cursor:pointer;transition:all .28s;background:transparent}
+.dn.on{background:var(--silver);border-color:var(--silver);width:7px;height:7px;box-shadow:0 0 8px rgba(207,207,207,.3)}
+
+/* ── SECTION LABEL ─────────────────────── */
+.slbl{position:absolute;left:2.2rem;top:2.2rem;font-family:'JetBrains Mono',monospace;font-size:.57rem;letter-spacing:.28em;color:var(--muted);text-transform:uppercase;opacity:0;transform:translateX(-12px);transition:opacity .5s,transform .5s}
+section.vis .slbl{opacity:1;transform:none}
+
+/* ── REVEAL ────────────────────────────── */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.rv.vis{opacity:1;transform:none}
+.rv.d1{transition-delay:.1s}.rv.d2{transition-delay:.2s}.rv.d3{transition-delay:.3s}.rv.d4{transition-delay:.4s}
+
+/* ════════════════════════════════════════
+   HERO
+════════════════════════════════════════ */
+#home{flex-direction:column;justify-content:center;text-align:center;padding-top:3.5rem}
+.hw{display:flex;flex-direction:column;align-items:center;gap:2.6rem;max-width:820px}
+
+/* character */
+.hchar{position:relative;width:192px;height:248px;cursor:pointer;flex-shrink:0}
+.hchar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:14px;transition:opacity .5s ease,transform .5s ease,filter .5s ease;user-select:none;-webkit-user-drag:none}
+.co{opacity:1;transform:scale(1)}.cm{opacity:0;transform:scale(1)}
+.hchar:hover .co{opacity:0;transform:scale(1.04)}
+.hchar:hover .cm{opacity:1;transform:scale(1.04);filter:brightness(1.08)}
+.hchar::before{content:'';position:absolute;inset:-2px;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,.02));z-index:-1;opacity:0;transition:opacity .45s}
+.hchar:hover::before{opacity:1}
+.hph{width:100%;height:100%;background:var(--bg3);border:1px solid var(--bh);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.45rem}
+.hph span{font-family:'Space Grotesk',sans-serif;font-size:3.4rem;font-weight:700;color:rgba(255,255,255,.18);line-height:1}
+.hph small{font-family:'JetBrains Mono',monospace;font-size:.52rem;letter-spacing:.15em;color:var(--muted);text-transform:uppercase}
+.hfl{animation:float 4.5s ease-in-out infinite}
+
+/* hero text */
+.hbadge{display:inline-block;padding:.24rem .88rem;background:rgba(255,255,255,.05);border:1px solid var(--b);border-radius:var(--rp);font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-bottom:.85rem;opacity:0;animation:fadeUp .6s .15s ease forwards}
+.hname{font-family:'Space Grotesk',sans-serif;font-size:clamp(2.7rem,7.5vw,5.1rem);font-weight:700;line-height:1.05;margin-bottom:.65rem;opacity:0;animation:fadeUp .6s .3s ease forwards}
+.hname em{font-style:normal;background:linear-gradient(90deg,#fff,var(--silver));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hrole{font-size:.9rem;font-weight:300;color:var(--muted);letter-spacing:.06em;margin-bottom:1.35rem;opacity:0;animation:fadeUp .6s .45s ease forwards}
+.sp{display:inline;opacity:.3;padding:0 .42rem}
+.hdesc{max-width:520px;font-size:.89rem;line-height:1.86;color:rgba(189,189,189,.8);margin:0 auto;opacity:0;animation:fadeUp .6s .6s ease forwards}
+.hbtns{display:flex;gap:.85rem;justify-content:center;margin-top:1.9rem;opacity:0;animation:fadeUp .6s .75s ease forwards}
+.bp{padding:.62rem 1.75rem;background:var(--bg3);border:1px solid var(--bh);border-radius:8px;color:var(--text);font-size:.84rem;font-weight:500;text-decoration:none;cursor:pointer;transition:all .25s}
+.bp:hover{background:var(--card-h);border-color:var(--silver);box-shadow:0 0 22px var(--glow),0 6px 20px rgba(0,0,0,.45);transform:translateY(-2px)}
+.bs{padding:.62rem 1.75rem;background:transparent;border:1px solid var(--b);border-radius:8px;color:var(--muted);font-size:.84rem;text-decoration:none;cursor:pointer;transition:all .25s}
+.bs:hover{border-color:var(--bh);color:var(--text);box-shadow:0 0 16px var(--gs);transform:translateY(-2px)}
+.scue{position:absolute;bottom:2.3rem;display:flex;flex-direction:column;align-items:center;gap:.42rem;opacity:.28;animation:pulse 2.8s infinite}
+.scue p{font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:.22em;color:var(--muted)}
+.sln{width:1px;height:48px;background:linear-gradient(to bottom,var(--silver),transparent);animation:sla 2.4s infinite}
+
+/* ════════════════════════════════════════
+   ABOUT
+════════════════════════════════════════ */
+.agrid{display:grid;grid-template-columns:1fr 1.55fr;gap:4.5rem;align-items:center}
+.astats{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.astat{background:var(--card);border:1px solid var(--b);border-radius:12px;padding:1.2rem 1rem;text-align:center;transition:border-color .28s,box-shadow .28s}
+.astat:hover{border-color:var(--bh);box-shadow:0 0 18px var(--gs)}
+.asn{font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700}
+.asl{font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.12em;color:var(--muted);margin-top:.2rem}
+.atag{display:inline-block;padding:.24rem .84rem;background:rgba(255,255,255,.04);border:1px solid var(--b);border-radius:var(--rp);font-family:'JetBrains Mono',monospace;font-size:.59rem;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-bottom:1.35rem}
+.ah{font-family:'Space Grotesk',sans-serif;font-size:2.05rem;font-weight:700;margin-bottom:1.35rem;line-height:1.25}
+.ah em{font-style:normal;color:var(--silver)}
+.ap{font-size:.87rem;line-height:1.9;color:var(--sec)}
+.ap+.ap{margin-top:.8rem}
+.avis{position:relative}
+.aring{position:absolute;top:-26px;left:-26px;width:115px;height:115px;border-radius:50%;border:1px solid rgba(255,255,255,.04);pointer-events:none;animation:spin 30s linear infinite}
+
+/* ════════════════════════════════════════
+   TECH ARSENAL — MARQUEE
+════════════════════════════════════════ */
+#techarsenal{padding:6rem 0 5rem}
+.ta-inner{width:100%;max-width:1060px;margin:0 auto;padding:0 2rem}
+.sec-t{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.8rem,4vw,2.85rem);font-weight:700;margin-bottom:.48rem}
+.sec-t em{font-style:normal;color:var(--silver)}
+.sec-s{font-size:.87rem;color:var(--muted)}
+
+.ta-rows{margin-top:3rem;display:flex;flex-direction:column;gap:1.8rem}
+.ta-row{}
+.ta-lbl{
+  font-family:'JetBrains Mono',monospace;font-size:.6rem;
+  letter-spacing:.22em;color:var(--muted);text-transform:uppercase;
+  margin-bottom:.8rem;padding-left:.15rem;
+  display:flex;align-items:center;gap:.7rem;
+}
+.ta-lbl::after{content:'';flex:1;height:1px;background:linear-gradient(to right,rgba(255,255,255,.07),transparent)}
+
+/* Fade edges */
+.ta-outer{
+  overflow:hidden;
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 7%,#000 93%,transparent 100%);
+  mask-image:linear-gradient(to right,transparent 0%,#000 7%,#000 93%,transparent 100%);
+}
+.ta-track{
+  display:flex;gap:.7rem;
+  width:max-content;
+  animation:mq var(--spd,30s) linear infinite;
+}
+.ta-track:hover{animation-play-state:paused}
+
+@keyframes mq{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* Cards */
+.ti{
+  display:flex;align-items:center;gap:.58rem;
+  background:var(--card);border:1px solid var(--b);
+  border-radius:10px;padding:.55rem 1.05rem;
+  white-space:nowrap;cursor:default;flex-shrink:0;
+  transform:translateY(0);
+  transition:background .25s,border-color .25s,box-shadow .25s,transform .25s;
+}
+.ti:hover{
+  background:var(--card-h);border-color:var(--bh);
+  box-shadow:0 6px 22px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.05);
+  transform:translateY(-2px);
+}
+.ti-ico{
+  width:24px;height:24px;border-radius:6px;
+  background:rgba(255,255,255,.06);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;color:var(--silver);
+}
+.ti-ico svg{width:13px;height:13px;display:block;flex-shrink:0}
+.ti-ico svg.fill{fill:currentColor;stroke:none}
+.ti-ico svg.str{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ti-nm{font-family:'Inter',sans-serif;font-size:.78rem;font-weight:500;color:var(--sec);letter-spacing:.01em}
+
+/* ════════════════════════════════════════
+   PROJECTS
+════════════════════════════════════════ */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:1.1rem;margin-top:2.7rem}
+.pc{
+  background:var(--card);border:1px solid var(--b);
+  border-radius:16px;padding:1.75rem;
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:transform .38s ease,box-shadow .38s,border-color .3s,background .28s;
+}
+.pc::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.03),transparent);opacity:0;transition:opacity .35s}
+.pc:hover{
+  transform:perspective(900px) rotateY(-3.5deg) rotateX(2.5deg) translateY(-7px);
+  box-shadow:0 28px 55px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.07);
+  border-color:rgba(255,255,255,.13);background:var(--card-h);
+}
+.pc:hover::after{opacity:1}
+.pnum{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-bottom:.78rem}
+.ptit{font-family:'Space Grotesk',sans-serif;font-size:1.13rem;font-weight:700;margin-bottom:.58rem;line-height:1.3}
+.pbadge{display:inline-block;padding:.15rem .62rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--rp);font-size:.63rem;color:var(--silver);font-family:'JetBrains Mono',monospace;margin-bottom:.82rem}
+.pdesc{font-size:.83rem;line-height:1.8;color:var(--muted);margin-bottom:1.3rem}
+.ptags{display:flex;flex-wrap:wrap;gap:.36rem}
+.ptag{padding:.16rem .58rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:5px;font-size:.66rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.parr{position:absolute;top:1.65rem;right:1.65rem;width:26px;height:26px;border-radius:50%;border:1px solid var(--b);display:flex;align-items:center;justify-content:center;font-size:.68rem;color:var(--muted);transition:all .28s}
+.pc:hover .parr{background:var(--silver);border-color:var(--silver);color:#000;transform:rotate(45deg)}
+
+/* ════════════════════════════════════════
+   MODAL
+════════════════════════════════════════ */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.87);backdrop-filter:blur(22px);z-index:800;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .32s}
+#modal.open{opacity:1;pointer-events:all}
+.mbox{background:var(--bg2);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:2.8rem;max-width:580px;width:92%;position:relative;transform:translateY(20px) scale(.97);transition:transform .32s;box-shadow:0 40px 80px rgba(0,0,0,.8)}
+#modal.open .mbox{transform:none}
+.mx{position:absolute;top:1.3rem;right:1.3rem;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid var(--b);cursor:pointer;color:var(--muted);font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:all .22s}
+.mx:hover{background:rgba(255,255,255,.12);border-color:var(--bh);color:var(--text)}
+#mn{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-bottom:.55rem}
+#mt{font-family:'Space Grotesk',sans-serif;font-size:1.6rem;font-weight:700;margin-bottom:.42rem}
+#mb{margin-bottom:1.15rem}
+#md{font-size:.87rem;line-height:1.9;color:var(--sec);margin-bottom:1.35rem}
+#ms{display:flex;flex-wrap:wrap;gap:.42rem}
+.pill{padding:.2rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--b);border-radius:6px;font-size:.69rem;color:var(--muted);font-family:'JetBrains Mono',monospace;transition:all .2s}
+.pill:hover{background:rgba(255,255,255,.09);border-color:var(--bh);color:var(--silver)}
+
+/* ════════════════════════════════════════
+   CONTACT
+════════════════════════════════════════ */
+.cgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:.9rem;margin-top:2.7rem;max-width:560px;margin-left:auto;margin-right:auto}
+.cc{background:var(--card);border:1px solid var(--b);border-radius:13px;padding:1.3rem 1.1rem;text-decoration:none;color:var(--text);display:flex;align-items:center;gap:.82rem;transition:all .28s}
+.cc:hover{border-color:var(--bh);background:var(--card-h);transform:translateY(-3px);box-shadow:0 16px 34px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05)}
+.cico{width:37px;height:37px;flex-shrink:0;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--b);display:flex;align-items:center;justify-content:center}
+.cico svg{width:15px;height:15px;fill:var(--muted);display:block}
+.clbl{font-family:'JetBrains Mono',monospace;font-size:.57rem;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:.16rem}
+.cval{font-size:.8rem;color:var(--sec)}
+.foot{margin-top:5rem;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.12em;color:var(--muted);opacity:.2;text-align:center}
+
+/* ── KEYFRAMES ──────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:none}}
+@keyframes navIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes socIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-11px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:.28}50%{opacity:.62}}
+@keyframes sla{0%{transform:scaleY(0);transform-origin:top}48%{transform:scaleY(1);transform-origin:top}52%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* ── RESPONSIVE ────────────────────────── */
+@media(max-width:720px){
+  #tnav{display:none}#mbtn{display:block}#dots{display:none}
+  .agrid{grid-template-columns:1fr}
+  .cgrid{grid-template-columns:1fr}
+  #sbar{padding:.36rem .48rem;gap:.22rem;right:.9rem}
+  .si{width:27px;height:27px}.si svg{width:12px;height:12px}
+  section{padding:6.5rem 1.2rem 4rem}
+  #techarsenal{padding:5rem 0 4rem}
+}
+@media(max-width:440px){.pgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div id="cd"></div>
+<div id="cr"></div>
+
+<!-- Background -->
+<canvas id="bgc"></canvas>
+
+<!-- Top nav -->
+<nav id="tnav">
+  <a class="nl on" data-s="home">Home</a>
+  <a class="nl" data-s="about">About</a>
+  <a class="nl" data-s="techarsenal">Tech Arsenal</a>
+  <a class="nl" data-s="projects">Projects</a>
+  <a class="nl" data-s="contact">Contact</a>
+</nav>
+
+<!-- Mobile nav -->
+<button id="mbtn" onclick="tmob()">&#9776;&nbsp; Menu</button>
+<div id="mmenu">
+  <a class="ml on" data-s="home" onclick="gmob(this)">Home</a>
+  <a class="ml" data-s="about" onclick="gmob(this)">About</a>
+  <a class="ml" data-s="techarsenal" onclick="gmob(this)">Tech Arsenal</a>
+  <a class="ml" data-s="projects" onclick="gmob(this)">Projects</a>
+  <a class="ml" data-s="contact" onclick="gmob(this)">Contact</a>
+</div>
+
+<!-- Social bar -->
+<div id="sbar">
+  <a class="si" href="https://github.com/sanjithjanijanu-byte" target="_blank" title="GitHub">
+    <svg viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.09-.745.083-.729.083-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+  </a>
+  <a class="si" href="https://www.linkedin.com/in/sanjith-p-758b2730b" target="_blank" title="LinkedIn">
+    <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+  </a>
+  <a class="si" href="https://www.instagram.com/sanjith.ai/" target="_blank" title="Instagram">
+    <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+  </a>
+  <a class="si" href="mailto:sanjithjanijanu@gmail.com?subject=Portfolio%20Contact" title="Gmail">
+    <svg viewBox="0 0 24 24"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 010 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/></svg>
+  </a>
+</div>
+
+<!-- Side dots -->
+<div id="dots">
+  <div class="dn on" data-s="home"></div>
+  <div class="dn" data-s="about"></div>
+  <div class="dn" data-s="techarsenal"></div>
+  <div class="dn" data-s="projects"></div>
+  <div class="dn" data-s="contact"></div>
+</div>
+
+<!-- Modal -->
+<div id="modal">
+  <div class="mbox">
+    <button class="mx" id="mx">&#x2715;</button>
+    <p id="mn"></p><h2 id="mt"></h2>
+    <div id="mb"></div><p id="md"></p>
+    <div id="ms"></div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+
+<!-- HOME -->
+<section id="home">
+  <div class="hw rv">
+    <div class="hchar hfl" id="hchar">
+  <img src="./public/assets/sanjith-open.png" class="co" alt="Sanjith"/>
+  <img src="./public/assets/sanjith-mask.png" class="cm" alt="Sanjith masked"/>
+     </div>
+      <!--
+        Drop images into /public/assets/ then uncomment:
+        <img src="./public/assets/sanjith-open.png" class="co" alt="Sanjith"/>
+        <img src="./public/assets/sanjith-mask.png" class="cm" alt="Sanjith masked"/>
+      -->
+    </div>
+    <div>
+      <p class="hbadge">// hello world</p>
+      <h1 class="hname">Hi! I'm <em>Sanjith</em></h1>
+      <p class="hrole">AI Developer<span class="sp">·</span>Software Developer<span class="sp">·</span>BCA Generative AI Student</p>
+      <p class="hdesc">Passionate about building intelligent software systems, experimenting with machine learning models, and developing innovative AI-powered solutions.</p>
+      <div class="hbtns">
+        <a class="bp" onclick="gt('projects')">View Projects</a>
+        <a class="bs" onclick="gt('contact')">Get in Touch</a>
+      </div>
+    </div>
+  </div>
+  <div class="scue"><p>scroll</p><div class="sln"></div></div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <span class="slbl">01 / about</span>
+  <div class="inner agrid rv">
+    <div class="avis">
+      <div class="aring"></div>
+      <div class="astats">
+        <div class="astat"><div class="asn">3+</div><div class="asl">Projects</div></div>
+        <div class="astat"><div class="asn">AI</div><div class="asl">Specialization</div></div>
+        <div class="astat" style="grid-column:1/-1">
+          <div class="asn" style="font-size:1.2rem">Generative AI</div>
+          <div class="asl">BCA Focus Track</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <span class="atag">About Me</span>
+      <h2 class="ah">Building the Future,<br/><em>One Model at a Time</em></h2>
+      <p class="ap">I am a BCA student specializing in Generative AI with a strong interest in developing intelligent software solutions. I enjoy building modern applications and experimenting with AI models and machine learning technologies.</p>
+      <p class="ap">I like creating innovative projects that solve real-world problems and improve user experiences. My goal is to become a skilled AI developer and software engineer focusing on powerful AI-driven systems.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TECH ARSENAL -->
+<section id="techarsenal" style="display:block;padding:6rem 0 5rem">
+  <span class="slbl" style="left:2.2rem;top:2.2rem">02 / tech arsenal</span>
+
+  <div class="ta-inner">
+    <div class="rv" style="text-align:center;margin-bottom:3rem">
+      <h2 class="sec-t">Tech <em>Arsenal</em></h2>
+      <p class="sec-s">Technologies and tools I work with</p>
+    </div>
+  </div>
+
+  <div class="ta-inner rv d1">
+    <div class="ta-rows">
+
+      <!-- ROW 1 · Programming -->
+      <div class="ta-row">
+        <div class="ta-lbl">Programming</div>
+        <div class="ta-outer">
+          <div class="ta-track" style="--spd:20s">
+            <!-- set A -->
+            <div class="ti">
+              <div class="ti-ico"><svg class="fill" viewBox="0 0 24 24"><path d="M14.25.18l.9.2.73.26.59.3.45.32.34.34.25.34.16.33.1.3.04.26.02.2-.01.13V8.5l-.05.63-.13.55-.21.46-.26.38-.3.31-.33.25-.35.19-.35.14-.33.1-.3.07-.26.04-.21.02H8.83l-.69.05-.59.14-.5.22-.41.27-.33.32-.27.35-.2.36-.15.37-.1.35-.07.32-.04.27-.02.21v3.06H3.23l-.21-.03-.28-.07-.32-.12-.35-.18-.36-.26-.36-.36-.35-.46-.32-.59-.28-.73-.21-.88-.14-1.05L0 11.97l.06-1.22.16-1.04.24-.87.32-.71.36-.57.4-.44.42-.33.42-.24.4-.16.36-.1.32-.05.26-.02.21-.01h5.74l.69-.05.59-.14.5-.21.41-.28.33-.32.27-.35.2-.36.15-.36.1-.35.07-.32.04-.28.02-.21V6.07h2.09l.14.01zm-6.47 14.25l-.23.33-.08.41.08.41.23.34.33.22.41.09.41-.09.33-.22.23-.34.08-.41-.08-.41-.23-.33-.33-.22-.41-.09-.41.09-.33.22zM21.1 6.11l.28.06.32.12.35.18.36.27.36.35.35.47.32.59.28.73.21.88.14 1.04.05 1.23-.06 1.23-.16 1.04-.24.86-.32.71-.36.57-.4.45-.42.33-.42.24-.4.16-.36.09-.32.05-.26.02-.21.01h-5.74l-.69.05-.59.14-.5.21-.41.28-.33.32-.27.35-.2.36-.15.36-.1.35-.07.32-.04.28-.02.21v3.06h-2.09l-.14-.01-.21-.03-.28-.06-.32-.12-.35-.18-.36-.27-.36-.35-.35-.47-.32-.59-.28-.73-.21-.88-.14-1.04-.05-1.23.06-1.22.16-1.05.24-.87.32-.71.36-.57.4-.45.42-.33.42-.24.4-.16.36-.1.32-.05.26-.02.21-.01h5.74l.69-.05.59-.14.5-.21.41-.28.33-.32.27-.35.2-.36.15-.36.1-.35.07-.32.04-.28.02-.21V6.07h2.09l.14.01zm-6.47 14.25l-.23.33-.08.41.08.41.23.34.33.22.41.09.41-.09.33-.22.23-.34.08-.41-.08-.41-.23-.33-.33-.22-.41-.09-.41.09-.33.22z"/></svg></div>
+              <span class="ti-nm">Python</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="fill" viewBox="0 0 24 24"><path d="M8.851 18.56s-.917.534.653.714c1.902.218 2.874.187 4.969-.211 0 0 .552.346 1.321.646-4.699 2.013-10.633-.118-6.943-1.149M8.276 15.933s-1.028.761.542.924c2.032.209 3.636.227 6.413-.308 0 0 .384.389.987.602-5.679 1.661-12.007.13-7.942-1.218M13.116 11.475c1.158 1.333-.304 2.533-.304 2.533s2.939-1.518 1.589-3.418c-1.261-1.772-2.228-2.652 3.007-5.688 0 0-8.216 2.051-4.292 6.573M19.33 20.504s.679.559-.747.991c-2.712.822-11.288 1.069-13.669.033-.856-.373.75-.89 1.254-.998.527-.114.828-.093.828-.093-.953-.671-6.156 1.317-2.643 1.887 9.58 1.553 17.462-.7 14.977-1.82M9.292 13.21s-4.362 1.036-1.544 1.412c1.189.159 3.561.123 5.77-.062 1.806-.152 3.618-.477 3.618-.477s-.637.272-1.098.587c-4.429 1.165-12.986.623-10.522-.568 2.082-1.006 3.776-.892 3.776-.892M17.116 17.584c4.503-2.34 2.421-4.589.968-4.285-.355.074-.515.138-.515.138s.132-.207.385-.297c2.875-1.011 5.086 2.981-.928 4.562 0-.001.07-.062.09-.118M14.401 0s2.494 2.494-2.365 6.33c-3.896 3.077-.888 4.832-.001 6.836-2.274-2.053-3.943-3.858-2.824-5.539 1.644-2.469 6.197-3.665 5.19-7.627M9.734 23.924c4.322.277 10.959-.153 11.116-2.19 0 0-.302.775-3.572 1.391-3.688.694-8.239.613-10.937.168 0-.001.553.457 3.393.631"/></svg></div>
+              <span class="ti-nm">Java</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="str" viewBox="0 0 24 24"><path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2M8 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3ZM9 12l2 2 4-4"/></svg></div>
+              <span class="ti-nm">C++</span>
+            </div>
+            <!-- set B (duplicate) -->
+            <div class="ti">
+              <div class="ti-ico"><svg class="fill" viewBox="0 0 24 24"><path d="M14.25.18l.9.2.73.26.59.3.45.32.34.34.25.34.16.33.1.3.04.26.02.2-.01.13V8.5l-.05.63-.13.55-.21.46-.26.38-.3.31-.33.25-.35.19-.35.14-.33.1-.3.07-.26.04-.21.02H8.83l-.69.05-.59.14-.5.22-.41.27-.33.32-.27.35-.2.36-.15.37-.1.35-.07.32-.04.27-.02.21v3.06H3.23l-.21-.03-.28-.07-.32-.12-.35-.18-.36-.26-.36-.36-.35-.46-.32-.59-.28-.73-.21-.88-.14-1.05L0 11.97l.06-1.22.16-1.04.24-.87.32-.71.36-.57.4-.44.42-.33.42-.24.4-.16.36-.1.32-.05.26-.02.21-.01h5.74l.69-.05.59-.14.5-.21.41-.28.33-.32.27-.35.2-.36.15-.36.1-.35.07-.32.04-.28.02-.21V6.07h2.09l.14.01zm-6.47 14.25l-.23.33-.08.41.08.41.23.34.33.22.41.09.41-.09.33-.22.23-.34.08-.41-.08-.41-.23-.33-.33-.22-.41-.09-.41.09-.33.22zM21.1 6.11l.28.06.32.12.35.18.36.27.36.35.35.47.32.59.28.73.21.88.14 1.04.05 1.23-.06 1.23-.16 1.04-.24.86-.32.71-.36.57-.4.45-.42.33-.42.24-.4.16-.36.09-.32.05-.26.02-.21.01h-5.74l-.69.05-.59.14-.5.21-.41.28-.33.32-.27.35-.2.36-.15.36-.1.35-.07.32-.04.28-.02.21v3.06h-2.09l-.14-.01-.21-.03-.28-.06-.32-.12-.35-.18-.36-.27-.36-.35-.35-.47-.32-.59-.28-.73-.21-.88-.14-1.04-.05-1.23.06-1.22.16-1.05.24-.87.32-.71.36-.57.4-.45.42-.33.42-.24.4-.16.36-.1.32-.05.26-.02.21-.01h5.74l.69-.05.59-.14.5-.21.41-.28.33-.32.27-.35.2-.36.15-.36.1-.35.07-.32.04-.28.02-.21V6.07h2.09l.14.01zm-6.47 14.25l-.23.33-.08.41.08.41.23.34.33.22.41.09.41-.09.33-.22.23-.34.08-.41-.08-.41-.23-.33-.33-.22-.41-.09-.41.09-.33.22z"/></svg></div>
+              <span class="ti-nm">Python</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="fill" viewBox="0 0 24 24"><path d="M8.851 18.56s-.917.534.653.714c1.902.218 2.874.187 4.969-.211 0 0 .552.346 1.321.646-4.699 2.013-10.633-.118-6.943-1.149M8.276 15.933s-1.028.761.542.924c2.032.209 3.636.227 6.413-.308 0 0 .384.389.987.602-5.679 1.661-12.007.13-7.942-1.218M13.116 11.475c1.158 1.333-.304 2.533-.304 2.533s2.939-1.518 1.589-3.418c-1.261-1.772-2.228-2.652 3.007-5.688 0 0-8.216 2.051-4.292 6.573M19.33 20.504s.679.559-.747.991c-2.712.822-11.288 1.069-13.669.033-.856-.373.75-.89 1.254-.998.527-.114.828-.093.828-.093-.953-.671-6.156 1.317-2.643 1.887 9.58 1.553 17.462-.7 14.977-1.82M9.292 13.21s-4.362 1.036-1.544 1.412c1.189.159 3.561.123 5.77-.062 1.806-.152 3.618-.477 3.618-.477s-.637.272-1.098.587c-4.429 1.165-12.986.623-10.522-.568 2.082-1.006 3.776-.892 3.776-.892M17.116 17.584c4.503-2.34 2.421-4.589.968-4.285-.355.074-.515.138-.515.138s.132-.207.385-.297c2.875-1.011 5.086 2.981-.928 4.562 0-.001.07-.062.09-.118M14.401 0s2.494 2.494-2.365 6.33c-3.896 3.077-.888 4.832-.001 6.836-2.274-2.053-3.943-3.858-2.824-5.539 1.644-2.469 6.197-3.665 5.19-7.627M9.734 23.924c4.322.277 10.959-.153 11.116-2.19 0 0-.302.775-3.572 1.391-3.688.694-8.239.613-10.937.168 0-.001.553.457 3.393.631"/></svg></div>
+              <span class="ti-nm">Java</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="str" viewBox="0 0 24 24"><path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2M8 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3ZM9 12l2 2 4-4"/></svg></div>
+              <span class="ti-nm">C++</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 2 · AI / Data -->
+      <div class="ta-row">
+        <div class="ta-lbl">AI / Data</div>
+        <div class="ta-outer">
+          <div class="ta-track" style="--spd:26s">
+            <!-- set A -->
+            <div class="ti">
+              <div class="ti-ico"><svg class="str" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></div>
+              <span class="ti-nm">Machine Learning</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="str" viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"/><path d="M15.536 17.536A5 5 0 0 1 7 14"/><path d="M19 10a7 7 0 0 1-14 0"/></svg></div>
+              <span class="ti-nm">Generative AI</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="str" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+              <span class="ti-nm">AI Model Dev</span>
+            </div>
+            <!-- set B -->
+            <div class="ti">
+              <div class="ti-ico"><svg class="str" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></div>
+              <span class="ti-nm">Machine Learning</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="str" viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"/><path d="M15.536 17.536A5 5 0 0 1 7 14"/><path d="M19 10a7 7 0 0 1-14 0"/></svg></div>
+              <span class="ti-nm">Generative AI</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="str" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+              <span class="ti-nm">AI Model Dev</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 3 · Tools -->
+      <div class="ta-row">
+        <div class="ta-lbl">Tools</div>
+        <div class="ta-outer">
+          <div class="ta-track" style="--spd:34s">
+            <!-- set A -->
+            <div class="ti">
+              <div class="ti-ico"><svg class="fill" viewBox="0 0 24 24"><path d="M2.6 10.59L8.38 4.8l1.69 1.7c-.24.85.15 1.78.93 2.23v5.54c-.6.34-1 .99-1 1.73a2 2 0 002 2 2 2 0 002-2c0-.74-.4-1.39-1-1.73V9.41l2.07 2.09c-.07.15-.07.32-.07.5a2 2 0 002 2 2 2 0 002-2 2 2 0 00-2-2c-.18 0-.35 0-.5.07L13.93 7.5a2 2 0 00-1.93-2.57 2 2 0 00-1.35.52L8.38 3.23 7.27 2.12A2 2 0 005.04 2.1L2.66 4.5a2 2 0 00.02 2.83l-.08.08a2 2 0 000 2.83l.01.35z"/></svg></div>
+              <span class="ti-nm">Git</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="fill" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.09-.745.083-.729.083-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></div>
+              <span class="ti-nm">GitHub</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="fill" viewBox="0 0 24 24"><path d="M23.15 2.587L18.21.21a1.494 1.494 0 00-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 00-1.276.057L.327 7.261A1 1 0 00.326 8.74L3.899 12 .326 15.26a1 1 0 00.001 1.479L1.65 17.94a.999.999 0 001.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 001.704.29l4.942-2.377A1.5 1.5 0 0024 19.06V4.94a1.5 1.5 0 00-.85-1.353zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/></svg></div>
+              <span class="ti-nm">VS Code</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="str" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+              <span class="ti-nm">Jupyter Notebook</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="str" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4a3 3 0 110 6 3 3 0 010-6zm0 14c-2.67 0-8-1.34-8-4 0-2.67 5.33-4 8-4s8 1.33 8 4c0 2.66-5.33 4-8 4z"/></svg></div>
+              <span class="ti-nm">Anaconda</span>
+            </div>
+            <!-- set B -->
+            <div class="ti">
+              <div class="ti-ico"><svg class="fill" viewBox="0 0 24 24"><path d="M2.6 10.59L8.38 4.8l1.69 1.7c-.24.85.15 1.78.93 2.23v5.54c-.6.34-1 .99-1 1.73a2 2 0 002 2 2 2 0 002-2c0-.74-.4-1.39-1-1.73V9.41l2.07 2.09c-.07.15-.07.32-.07.5a2 2 0 002 2 2 2 0 002-2 2 2 0 00-2-2c-.18 0-.35 0-.5.07L13.93 7.5a2 2 0 00-1.93-2.57 2 2 0 00-1.35.52L8.38 3.23 7.27 2.12A2 2 0 005.04 2.1L2.66 4.5a2 2 0 00.02 2.83l-.08.08a2 2 0 000 2.83l.01.35z"/></svg></div>
+              <span class="ti-nm">Git</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="fill" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.09-.745.083-.729.083-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></div>
+              <span class="ti-nm">GitHub</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="fill" viewBox="0 0 24 24"><path d="M23.15 2.587L18.21.21a1.494 1.494 0 00-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 00-1.276.057L.327 7.261A1 1 0 00.326 8.74L3.899 12 .326 15.26a1 1 0 00.001 1.479L1.65 17.94a.999.999 0 001.276.057l4.12-3.128 9.46 8.63a1.492 1.492 0 001.704.29l4.942-2.377A1.5 1.5 0 0024 19.06V4.94a1.5 1.5 0 00-.85-1.353zm-5.146 14.861L10.826 12l7.178-5.448v10.896z"/></svg></div>
+              <span class="ti-nm">VS Code</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="str" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+              <span class="ti-nm">Jupyter Notebook</span>
+            </div>
+            <div class="ti">
+              <div class="ti-ico"><svg class="str" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4a3 3 0 110 6 3 3 0 010-6zm0 14c-2.67 0-8-1.34-8-4 0-2.67 5.33-4 8-4s8 1.33 8 4c0 2.66-5.33 4-8 4z"/></svg></div>
+              <span class="ti-nm">Anaconda</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /ta-rows -->
+  </div><!-- /ta-inner -->
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <span class="slbl">03 / projects</span>
+  <div class="inner">
+    <div class="rv" style="text-align:center">
+      <h2 class="sec-t">Selected <em>Work</em></h2>
+      <p class="sec-s">Projects I've built and am building</p>
+    </div>
+    <div class="pgrid">
+      <div class="pc rv d1" onclick="om(0)">
+        <div class="parr">&#8594;</div>
+        <p class="pnum">// 01</p>
+        <h3 class="ptit">AR Indoor Navigation System</h3>
+        <span class="pbadge">&#x25CF; In Progress</span>
+        <p class="pdesc">An augmented reality navigation system designed to guide users inside large buildings such as universities, malls, and hospitals using AR arrows and 3D floor mapping.</p>
+        <div class="ptags"><span class="ptag">AR Technology</span><span class="ptag">3D Mapping</span><span class="ptag">Mobile Nav</span></div>
+      </div>
+      <div class="pc rv d2" onclick="om(1)">
+        <div class="parr">&#8594;</div>
+        <p class="pnum">// 02</p>
+        <h3 class="ptit">Academic CRM Platform</h3>
+        <p class="pdesc">A web platform designed to manage academic activities including exam seating arrangements, course materials, and student–faculty collaboration.</p>
+        <div class="ptags"><span class="ptag">React</span><span class="ptag">Node.js</span><span class="ptag">MongoDB</span><span class="ptag">Express</span></div>
+      </div>
+      <div class="pc rv d3" onclick="om(2)">
+        <div class="parr">&#8594;</div>
+        <p class="pnum">// 03</p>
+        <h3 class="ptit">Student Result Prediction</h3>
+        <p class="pdesc">A machine learning model that predicts students' university results using internal marks and academic performance data with linear regression.</p>
+        <div class="ptags"><span class="ptag">Python</span><span class="ptag">ML</span><span class="ptag">Linear Regression</span><span class="ptag">Data Analysis</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <span class="slbl">04 / contact</span>
+  <div class="inner">
+    <div class="rv" style="text-align:center;max-width:700px;margin:0 auto">
+      <h2 class="sec-t">Let's <em>Connect</em></h2>
+      <p class="sec-s">Open for collaborations, internships &amp; interesting projects</p>
+      <div class="cgrid">
+        <a class="cc" href="mailto:sanjithjanijanu@gmail.com?subject=Portfolio%20Contact">
+          <div class="cico"><svg viewBox="0 0 24 24"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 010 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/></svg></div>
+          <div><div class="clbl">Email</div><div class="cval">sanjithjanijanu@gmail.com</div></div>
+        </a>
+        <a class="cc" href="https://www.linkedin.com/in/sanjith-p-758b2730b" target="_blank">
+          <div class="cico"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></div>
+          <div><div class="clbl">LinkedIn</div><div class="cval">sanjith-p-758b2730b</div></div>
+        </a>
+        <a class="cc" href="https://github.com/sanjithjanijanu-byte" target="_blank">
+          <div class="cico"><svg viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.09-.745.083-.729.083-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></div>
+          <div><div class="clbl">GitHub</div><div class="cval">sanjithjanijanu-byte</div></div>
+        </a>
+        <a class="cc" href="https://www.instagram.com/sanjith.ai/" target="_blank">
+          <div class="cico"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></div>
+          <div><div class="clbl">Instagram</div><div class="cval">@sanjith.ai</div></div>
+        </a>
+      </div>
+      <p class="foot">Sanjith &nbsp;&#183;&nbsp; AI Developer &nbsp;&#183;&nbsp; 2025</p>
+    </div>
+  </div>
+</section>
+
+</div><!-- /app -->
+
+<script>
+/* ── PROJECT DATA ─────────────────── */
+const PD=[
+  {n:'// 01',t:'AR Indoor Navigation System',b:'&#x25CF; In Progress',
+   d:'An AR navigation system to guide users inside large buildings like universities, malls, and hospitals. Provides real-time indoor directions using AR arrows and 3D floor mapping. Currently in active development as a startup project.',
+   s:['AR Technology','3D Mapping','Mobile Navigation Systems']},
+  {n:'// 02',t:'Academic CRM Platform',b:'Completed',
+   d:'A comprehensive web platform to manage academic activities including exam seating arrangements, course materials distribution, and seamless student-faculty collaboration. Built with a full MERN stack architecture.',
+   s:['React','Node.js','MongoDB','Express']},
+  {n:'// 03',t:'Student Result Prediction System',b:'Completed',
+   d:"A machine learning model that predicts students' university results using internal marks and academic performance data. Uses linear regression and data analysis to deliver accurate outcome predictions.",
+   s:['Python','Machine Learning','Linear Regression','Data Analysis']}
+];
+
+/* ── MODAL ────────────────────────── */
+function om(i){
+  const p=PD[i];
+  document.getElementById('mn').textContent=p.n;
+  document.getElementById('mt').textContent=p.t;
+  document.getElementById('mb').innerHTML='<span class="pbadge">'+p.b+'</span>';
+  document.getElementById('md').textContent=p.d;
+  const ms=document.getElementById('ms');ms.innerHTML='';
+  p.s.forEach(x=>{const e=document.createElement('span');e.className='pill';e.textContent=x;ms.appendChild(e)});
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+const cm=()=>{document.getElementById('modal').classList.remove('open');document.body.style.overflow=''};
+document.getElementById('mx').onclick=cm;
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))cm()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')cm()});
+
+/* ── CURSOR ───────────────────────── */
+const CD=document.getElementById('cd'),CR=document.getElementById('cr');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+(function cl(){
+  CD.style.transform='translate('+(mx-4)+'px,'+(my-4)+'px)';
+  rx+=(mx-rx)*.1;ry+=(my-ry)*.1;
+  CR.style.transform='translate('+(rx-16)+'px,'+(ry-16)+'px)';
+  requestAnimationFrame(cl);
+})();
+function bindH(){
+  document.querySelectorAll('a,button,.pc,.dn,.nl,.si,.ml,.astat,.ti,.cc').forEach(el=>{
+    el.addEventListener('mouseenter',()=>document.body.classList.add('hov'));
+    el.addEventListener('mouseleave',()=>document.body.classList.remove('hov'));
+  });
+}
+bindH();
+
+/* ── CANVAS BG ────────────────────── */
+const CV=document.getElementById('bgc'),CX=CV.getContext('2d');
+let W,H,ST=[];
+function rsz(){W=CV.width=innerWidth;H=CV.height=innerHeight;bst()}
+function bst(){
+  ST=[];
+  for(let i=0;i<160;i++)ST.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*.65+.12,a:Math.random()*.25+.04,sp:Math.random()*.2+.04,ph:Math.random()*Math.PI*2});
+}
+rsz();addEventListener('resize',rsz);
+let sY=0;addEventListener('scroll',()=>{sY=scrollY},{passive:true});
+let T=0;
+(function bg(){
+  T+=.016;CX.clearRect(0,0,W,H);CX.fillStyle='#0a0a0a';CX.fillRect(0,0,W,H);
+  const vg=CX.createRadialGradient(W*.5,H*.5,H*.1,W*.5,H*.5,H*.9);
+  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.5)');
+  CX.fillStyle=vg;CX.fillRect(0,0,W,H);
+  const py=(sY*.06)%H;
+  ST.forEach(s=>{
+    const a=Math.max(.02,Math.min(.3,s.a+Math.sin(T*s.sp+s.ph)*.004));
+    CX.beginPath();CX.arc(s.x,(s.y-py+H)%H,s.r,0,Math.PI*2);
+    CX.fillStyle='rgba(200,200,200,'+a+')';CX.fill();
+  });
+  requestAnimationFrame(bg);
+})();
+
+/* ── CHARACTER ────────────────────── */
+const HC=document.getElementById('hchar');
+let ct=0;
+(function cl2(){
+  ct+=.012;
+  HC.style.transform='translateY('+(Math.sin(ct)*-11)+'px)';
+  requestAnimationFrame(cl2);
+})();
+document.addEventListener('mousemove',e=>{
+  const px=(e.clientX/innerWidth-.5)*10;
+  const py=(e.clientY/innerHeight-.5)*7;
+  HC.style.transform='translate('+(px*.35)+'px,'+(py*.35)+'px)';
+});
+
+/* ── SCROLL / NAV ─────────────────── */
+const SECS=document.querySelectorAll('section');
+const DNS=document.querySelectorAll('.dn');
+const NLS=document.querySelectorAll('.nl');
+const MLS=document.querySelectorAll('.ml');
+const RVS=document.querySelectorAll('.rv');
+
+function gt(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'})}
+window.gt=gt;
+NLS.forEach(n=>n.addEventListener('click',()=>gt(n.dataset.s)));
+DNS.forEach(d=>d.addEventListener('click',()=>gt(d.dataset.s)));
+
+function onsc(){
+  const mid=scrollY+innerHeight*.48;
+  SECS.forEach(s=>{
+    if(mid>=s.offsetTop&&mid<s.offsetTop+s.offsetHeight){
+      const id=s.id;
+      DNS.forEach(d=>d.classList.toggle('on',d.dataset.s===id));
+      NLS.forEach(n=>n.classList.toggle('on',n.dataset.s===id));
+      MLS.forEach(m=>m.classList.toggle('on',m.dataset.s===id));
+      s.classList.add('vis');
+    }
+  });
+  RVS.forEach(el=>{if(el.getBoundingClientRect().top<innerHeight*.88)el.classList.add('vis')});
+}
+addEventListener('scroll',onsc,{passive:true});
+onsc();
+
+/* ── MOBILE MENU ──────────────────── */
+function tmob(){document.getElementById('mmenu').classList.toggle('open')}
+function gmob(el){gt(el.dataset.s);document.getElementById('mmenu').classList.remove('open')}
+window.tmob=tmob;window.gmob=gmob;
+document.addEventListener('click',e=>{
+  const mm=document.getElementById('mmenu'),mb=document.getElementById('mbtn');
+  if(mm.classList.contains('open')&&!mm.contains(e.target)&&e.target!==mb)mm.classList.remove('open');
+});
+
+setTimeout(bindH,800);
+</script>
+</body>
+</html>
